@@ -8,6 +8,7 @@
 // +clearing noshows
 
 include 'settings.php';
+require_once $composerpath;
 
 if(!isset($_SESSION)) 
 { 
@@ -90,38 +91,25 @@ if ($result->num_rows == 1) {
             //Send nexmo SMS
             if ($debug == TRUE) echo "sending text";
 
-            $url = 'https://rest.nexmo.com/sms/json';
+            $client = new Nexmo\Client(new Nexmo\Client\Credentials\Basic($nexmokey, $nexmosecret));     
 
-            //The data you want to send via POST
-            $data = '{"api_key": "' . $nexmokey . '", "api_secret": "' . $nexmosecret . '", "from": "EMFRoamer", "to": "' . $telNumber . '", "text": "Your turn! Click here to control the EMF Roamer https://roamer.fun/?i='. $smsId . '&s=' . $smsSession . '" }';
-
-
-            //open connection
-            $ch = curl_init();
-
-            $headers = array(
-                "Content-Type: application/json",
-                "Accept: application/json",
+            $response = $client->sms()->send(
+                new \Nexmo\SMS\Message\SMS($telNumber, 'EMFRoamer','Your turn! Click here to control the EMF Roamer '.$sitepath.'/?i='. $smsId . '&s=' . $smsSession)
             );
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-            //set the url, number of POST vars, POST data
-            curl_setopt($ch,CURLOPT_URL, $url);
-            curl_setopt($ch,CURLOPT_POST, true);
-            curl_setopt($ch,CURLOPT_POSTFIELDS, $data);
+            $message = $response->current();
 
-            //So that curl_exec returns the contents of the cURL; rather than echoing it
-            curl_setopt($ch,CURLOPT_RETURNTRANSFER, true); 
+            if ($message->getStatus() == 0) {
+                if ($debug == TRUE) echo "The message was sent successfully\n";
 
-            //execute post
-            $result = curl_exec($ch);
-            if ($debug == TRUE) echo $result;
-
-            $sql = "UPDATE users SET status='text sent: $result' WHERE id=$usertomessage";
-            if ($conn->query($sql) === TRUE) {
-                if ($debug == TRUE) echo "status updated successfully";
+                $sql = "UPDATE users SET status='text sent: " . $message->getStatus() . "' WHERE id=$usertomessage";
+                if ($conn->query($sql) === TRUE) {
+                    if ($debug == TRUE) echo "status updated successfully";
+                } else {
+                    echo "Error updating status: " . $conn->error;
+                }
             } else {
-                echo "Error updating status: " . $conn->error;
+                echo "The message failed with status: " . $message->getStatus() . "\n";
             }
         }
         //set the message_sent_time to now, even if we have't sent them a message to make the noshow work.

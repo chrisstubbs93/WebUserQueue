@@ -19,4 +19,8 @@ date_default_timezone_set('UTC');
 
 $nexmokey = "abab";
 $nexmosecret = "abab";
+
+$composerpath = __DIR__ . "/../vendor/autoload.php";
+
+$sitepath = "https://roamer.fun";
 ?>
