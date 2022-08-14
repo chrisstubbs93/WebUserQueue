@@ -9,7 +9,7 @@
 include '../PHPWebUserQueue/WebUserQueue.php';
 $q = new WebUserQueue();
 
-//User already has a session. Check it's not already used, all their shit is valid, and they are first in the queue.
+//User already has a session. Check it's not already used, all their details are valid, and they are first in the queue.
 if (isset($_SESSION["i"]))
 {
     if($q->checkFirst($_SESSION["i"],$_SESSION["s"])){
