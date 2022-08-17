@@ -88,13 +88,13 @@ if ($result->num_rows == 1) {
     {
         if($telNumber != "")
         {
-            //Send nexmo SMS
+            //Send SMS
             if ($debug == TRUE) echo "sending text";
 
-            $client = new Nexmo\Client(new Nexmo\Client\Credentials\Basic($nexmokey, $nexmosecret));     
+            $client = new Vonage\Client(new Vonage\Client\Credentials\Basic($vonagekey, $vonagesecret));     
 
             $response = $client->sms()->send(
-                new \Nexmo\SMS\Message\SMS($telNumber, 'EMFRoamer','Your turn! Click here to control the EMF Roamer '.$sitepath.'/?i='. $smsId . '&s=' . $smsSession)
+                new \Vonage\SMS\Message\SMS($telNumber, 'EMFRoamer','Your turn! Click here to control the EMF Roamer '.$sitepath.'/?i='. $smsId . '&s=' . $smsSession)
             );
 
             $message = $response->current();
@@ -124,7 +124,7 @@ if ($result->num_rows == 1) {
     
  /////////////////////////////////////////////////////////////
 //check if the person at the front of the queue hasn't taken their turn yet.
-$sql = "SELECT * FROM users WHERE session_complete = 0 AND access_time IS NULL ORDER BY id ASC LIMIT 1";
+$sql = "SELECT *, NOW() FROM users WHERE session_complete = 0 AND access_time IS NULL ORDER BY id ASC LIMIT 1";
 $result = $conn->query($sql);
 $noshowbool = false;
 if ($result->num_rows == 1) {
@@ -134,10 +134,13 @@ if ($result->num_rows == 1) {
             //they have been notified their turn is ready
             $noshowid = $row["id"];
             $messagesenttime = $row["message_sent_time"];
-            if ($debug == TRUE) echo "User $noshowid has been notified that their turn is ready (according to the database at least)<br />";
+            $nowtime = $row["NOW()"]; //use the mysql time because mysql/php timezones can differ
+            if ($debug == TRUE) echo "User $noshowid has been notified that their turn is ready.<br />";
             
             //Are they a noshow?
-            $noshowbool = ((strtotime("now")-strtotime($messagesenttime)>$noshowtimeout) and (strtotime($messagesenttime)>0) and isset($messagesenttime));
+
+            if ($debug == TRUE) echo "Checking noshow. Now: " . strtotime($nowtime) . " sent: " . strtotime($messagesenttime) . ".<br />";
+            $noshowbool = ((strtotime($nowtime)-strtotime($messagesenttime)>$noshowtimeout) and (strtotime($messagesenttime)>0) and isset($messagesenttime));
         }
     }
     if ($noshowbool == TRUE)

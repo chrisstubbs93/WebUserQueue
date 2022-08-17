@@ -17,8 +17,8 @@ $sql_pass = "abab";
 setlocale(LC_ALL, 'en_GB');
 date_default_timezone_set('UTC');
 
-$nexmokey = "abab";
-$nexmosecret = "abab";
+$vonagekey = "abab";
+$vonagesecret = "abab";
 
 $composerpath = __DIR__ . "/../vendor/autoload.php";
 
