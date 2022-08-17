@@ -1,5 +1,8 @@
 <?php
 //This is the queue manager for admins
+
+//This tool was written before implementing the neat library functions, and will be updated to reflect in due course.
+
 session_start();
 if(isset($_GET["autorefresh"])){
     if($_GET["autorefresh"]=="yes"){
